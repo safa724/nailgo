@@ -15,7 +15,7 @@ void main() async {
       fallbackLocale: const Locale('en', 'US'),
       child: MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => CartProvider()),
+         ChangeNotifierProvider(create: (context) => CartProvider()),
           ChangeNotifierProvider(create: (context) => WishlistProvider()),
         ],
         child: const MyApp(),

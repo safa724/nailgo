@@ -4,60 +4,153 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nailgonew/screens/direction.dart';
 import 'package:nailgonew/screens/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupPage extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  Future<void> signUp(BuildContext context) async {
-    final String apiUrl = "http://nailgo.ae/api/v2/auth/signup";
+Future<void> signUp(BuildContext context) async {
+  final String apiUrl = "http://nailgo.ae/api/v2/auth/signup";
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        body: jsonEncode({
-          "name": nameController.text,
-          "email_or_phone": emailController.text,
-          "password": passwordController.text,
-          "register_by": "email",
-        }),
-      );
-
-      final responseData = jsonDecode(response.body);
-
-      if (response.statusCode == 201 && responseData['result'] == true) {
-        print(response.body);
-
-        _showMeasurementPopup(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Signup successful!"),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(responseData['message']),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      print("Error during signup: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("An error occurred during signup."),
-          backgroundColor: Colors.red,
+  // Show loading popup immediately
+  showDialog(
+    context: context,
+    barrierDismissible: false, // Prevent dismissal while loading
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text("Signing up..."),
+          ],
         ),
       );
+    },
+  );
+
+  bool isSuccess = false; // Initialize success state
+
+  try {
+    // Make sure the dialog is fully shown before making the request
+    await Future.delayed(Duration(milliseconds: 300));
+
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: jsonEncode({
+        "name": nameController.text,
+        "email_or_phone": emailController.text,
+        "password": passwordController.text,
+        "register_by": "email",
+      }),
+    );
+
+    // Parse the response
+    final responseData = jsonDecode(response.body);
+
+    // Debug Prints
+    print("Full API Response: ${response.body}");
+    print("Type of responseData['result']: ${responseData['result'].runtimeType}");
+    print("responseData['result']: ${responseData['result']}");
+
+    // Checking response status and success message
+    if (response.statusCode == 200 && responseData['result'] == true) {
+      final message = responseData['message'].toString().toLowerCase();
+
+      // Consider "signup" or "login" both as a success
+      if (message.contains("successfully logged in") || message.contains("signup successful")) {
+        print("Signup/Login Success: ${response.body}");
+        isSuccess = true; // Indicate successful signup/login
+
+        // Save user data in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setBool('isLoggedIn', true);
+        prefs.setString('accessToken', responseData['access_token'] ?? "");
+        prefs.setString('userId', responseData['user']['id'].toString() ?? "");
+        prefs.setString('userName', responseData['user']['name'] ?? "");
+        prefs.setString('userEmail', responseData['user']['email'] ?? "");
+        prefs.setString('userAvatar', responseData['user']['avatar_original'] ?? "");
+      } else {
+        print("Unexpected success message: $message");
+        isSuccess = false;
+      }
+    } else {
+      isSuccess = false;
+      print("Signup Error Response: ${response.body}");
     }
+
+    // Close the loading popup if still mounted
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+
+    // Show success or error message
+    await _showPopupMessage(context, 
+      isSuccess ? "Signup successful!" : responseData['message'], 
+      isSuccess: isSuccess);
+
+    // Show additional popup only if signup was successful
+    if (isSuccess) {
+      _showMeasurementPopup(context);
+    }
+  } catch (e) {
+    // Close the loading popup in case of error
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+
+    print("Exception Error: $e");
+
+    // Show error message
+    await _showPopupMessage(context, "An error occurred during signup.", isSuccess: false);
   }
+}
+
+// Popup Message Method
+Future<void> _showPopupMessage(BuildContext context, String message, {bool isSuccess = false}) async {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        title: Text(
+          isSuccess ? "Success" : "Error",
+          style: TextStyle(
+            color: isSuccess ? Colors.green : Colors.red,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: Colors.black),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              "OK",
+              style: TextStyle(color: Colors.blue),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   void _showMeasurementPopup(BuildContext context) {
     showDialog(

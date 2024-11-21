@@ -181,8 +181,47 @@ class _AddressPageState extends State<AddressPage> {
     setState(() {
       _selectedAddressId = addressId;
     });
+    _updateAddressInCart();
   }
+Future<void> _updateAddressInCart() async {
+  if (_selectedAddressId != null) {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String accessToken = prefs.getString('accessToken') ?? '';
+    String userId = prefs.getString('userId') ?? '';
 
+    if (accessToken.isNotEmpty && userId.isNotEmpty) {
+      final url = Uri.parse('http://nailgo.ae/api/v2/update-address-in-cart');
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+          },
+          body: json.encode({
+            'user_id': userId,
+            'address_id': _selectedAddressId,  // Pass the selected address ID
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          print(response.body);
+          // Handle successful response
+          print('Address updated in cart successfully');
+        } else {
+          // Handle error response
+          print('Failed to update address in cart');
+        }
+      } catch (e) {
+        print('Error updating address in cart: $e');
+      }
+    } else {
+      print('Access token or user ID is missing');
+    }
+  } else {
+    print('No address selected');
+  }
+}
   void _proceedToCheckout() {
     if (_selectedAddressId != null) {
       Address? selectedAddress = _addresses.firstWhere(
@@ -302,7 +341,7 @@ class _AddressPageState extends State<AddressPage> {
             ),
           ),
           InkWell(
-            onTap: _createOrder,
+            onTap: _proceedToCheckout,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(

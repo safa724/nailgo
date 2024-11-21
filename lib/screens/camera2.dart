@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nailgonew/screens/directions2.dart';
+import 'package:nailgonew/screens/home.dart';
 import 'package:nailgonew/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -294,7 +295,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
             child: Column(
               children: [
                 Text(
-                    'Your thumb measurements have been saved successfully!Please login to Continue Shopping'),
+                    'Your thumb measurements have been saved successfully!Enjoy Shopping'),
                 SizedBox(height: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +337,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => LoginPage(),
+                      builder: (context) => Home()
                     ),
                   );
                 },

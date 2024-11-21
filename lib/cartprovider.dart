@@ -8,15 +8,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CartProvider with ChangeNotifier {
   List<dynamic> _cartItems = [];
   bool _isLoggedIn = false;
+   String _grandTotal = '0.00';
+    String get grandTotal => _grandTotal;
   int _cartItemCount = 0;
   bool _isRequestPending = false;
   Queue<Function> _requestQueue = Queue();
   double _totalAmount = 0.0;
   double get totalAmount => _totalAmount;
-
+   
   List<dynamic> get cartItems => _cartItems;
   int get cartItemCount => _cartItemCount;
   bool get isLoggedIn => _isLoggedIn;
+   bool _loading = true;
+bool get isLoading => _loading;
 
   CartProvider() {
     checkLoginStatus();
@@ -29,6 +33,8 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
+
+  
   Future<void> fetchCartItems() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -39,7 +45,7 @@ class CartProvider with ChangeNotifier {
       }
 
       final response = await http.post(
-        Uri.parse('http://nailgo.ae/api/v2/carts'),
+        Uri.parse('http://nailgo.ae/api/v2/cartslist'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -47,27 +53,35 @@ class CartProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        List<dynamic> responseData = jsonDecode(response.body);
-        if (responseData.isNotEmpty) {
-          int ownerId = responseData[0]['owner_id'];
-          await prefs.setInt('ownerId', ownerId);
+        Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData['data'] != null && responseData['data'] is List) {
+          List<dynamic> cartData = responseData['data'];
+
+          if (cartData.isNotEmpty) {
+            int ownerId = cartData[0]['owner_id'];
+            await prefs.setInt('ownerId', ownerId);
+          }
+
+          // Update _grandTotal with the value from the response
+          _grandTotal = responseData['grand_total'] ?? '0.00';
+
+          _cartItems = cartData;
+          _updateCartItemCount();
+          notifyListeners();
+          _processRequestQueue();
+        } else {
+          print('No data found in the response');
         }
-
-        _cartItems = responseData;
-
-        _updateCartItemCount();
-        notifyListeners();
-        _processRequestQueue();
       } else {
         print('Failed to fetch cart items: ${response.statusCode}');
         print('Response body: ${response.body}');
-
-        if (response.statusCode == 401) {}
       }
     } catch (error) {
       print('Error fetching cart items: $error');
     }
   }
+
+
 
   void _updateCartItemCount() {
     _cartItemCount = _cartItems.length;

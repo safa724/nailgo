@@ -29,7 +29,7 @@ class _SuccessState extends State<Success> {
               Text(
                 'Your order has been successfully placed!',
                 style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: Colors.black),
               ),
@@ -45,8 +45,8 @@ class _SuccessState extends State<Success> {
                     color: Color.fromARGB(255, 185, 92, 4),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  height: 70,
-                  width: 200,
+                  height: 50,
+                  width: 220,
                   child: Center(
                       child: Text(
                     'CONTINUE SHOPPING',

@@ -23,6 +23,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _searchQuery = '';
+   ProductMiniResponse? _todaysDealProducts;
+  ProductMiniResponse? _bestSellingProducts;
+
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +47,7 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.white,
         appBar: buildAppBar(statusBarHeight, context),
         drawer: MainDrawer(),
-        body: SafeArea(
+          body: SafeArea(
           child: Column(
             children: [
               buildHomeSearchBox(context),
@@ -71,7 +74,30 @@ class _HomeState extends State<Home> {
                                     const SizedBox(height: 16.0),
                                     SizedBox(
                                       height: 300,
-                                      child: buildHomeExplore(context),
+                                      child: _todaysDealProducts == null
+                                          ? FutureBuilder<ProductMiniResponse>(
+                                              future:
+                                                  ProductRepository()
+                                                      .getTodaysDealProducts(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const Center(
+                                                    child:
+                                                        CircularProgressIndicator(color:Colors.black,strokeWidth: 2,),
+                                                  );
+                                                } else if (snapshot.hasError) {
+                                                  return Center(
+                                                      child: Text(
+                                                          'Error: ${snapshot.error}'));
+                                                } else {
+                                                  _todaysDealProducts =
+                                                      snapshot.data;
+                                                  return buildHomeExplore();
+                                                }
+                                              },
+                                            )
+                                          : buildHomeExplore(),
                                     ),
                                   ],
                                 ),
@@ -93,7 +119,30 @@ class _HomeState extends State<Home> {
                                     const SizedBox(height: 16.0),
                                     SizedBox(
                                       height: 120,
-                                      child: buildHomeNewCollection(context),
+                                      child: _bestSellingProducts == null
+                                          ? FutureBuilder<ProductMiniResponse>(
+                                              future:
+                                                  ProductRepository()
+                                                      .getBestSellingProducts(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const Center(
+                                                    child:
+                                                       CircularProgressIndicator(color:Colors.black,strokeWidth: 2,),
+                                                  );
+                                                } else if (snapshot.hasError) {
+                                                  return Center(
+                                                      child: Text(
+                                                          'Error: ${snapshot.error}'));
+                                                } else {
+                                                  _bestSellingProducts =
+                                                      snapshot.data;
+                                                  return buildHomeNewCollection();
+                                                }
+                                              },
+                                            )
+                                          : buildHomeNewCollection(),
                                     ),
                                     SizedBox(
                                       height: 70,
@@ -106,19 +155,15 @@ class _HomeState extends State<Home> {
                         ],
                       )
                     : FutureBuilder<ProductMiniResponse>(
-                        future:
-                            ProductRepository().searchProducts(_searchQuery),
+                        future: ProductRepository()
+                            .searchProducts(_searchQuery),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
                             return Center(
-                              child: CircularProgressIndicator(
-                                color: Color.fromARGB(255, 224, 179, 112),
-                              ),
+                              child:   CircularProgressIndicator(color:Colors.black,strokeWidth: 2,),
                             );
                           } else if (snapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${snapshot.error}'));
+                            return Center(child: Text('Error: ${snapshot.error}'));
                           } else {
                             final List<Product>? filteredProducts = snapshot
                                 .data?.products
@@ -171,7 +216,7 @@ class _HomeState extends State<Home> {
                                           ),
                                           title: Text(product?.name ?? ''),
                                           trailing: Text(
-                                              'AED ${product!.mainPrice!.replaceAll('Rs', '')}'),
+                                              '${product!.mainPrice!.replaceAll('Rs', '')}'),
                                           onTap: () {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
@@ -180,8 +225,7 @@ class _HomeState extends State<Home> {
                                                   products:
                                                       filteredProducts ?? [],
                                                   selectedProductIndex:
-                                                      selectedProductIndex ??
-                                                          -1,
+                                                      selectedProductIndex ?? -1,
                                                   id: product.id!,
                                                 ),
                                               ),
@@ -205,61 +249,36 @@ class _HomeState extends State<Home> {
     );
   }
 
-  CustomFutureBuilder<ProductMiniResponse> buildHomeExplore(context) {
-    return CustomFutureBuilder<ProductMiniResponse>(
-      isShimmerLoading: true,
-      future: ProductRepository().getTodaysDealProducts(),
-      child: (snapshot) {
-        final featuredCategoryResponse = snapshot.data;
-        if (featuredCategoryResponse!.products!.isEmpty) {
-          return const Center(
-              child: Text('No data is available at this Moment'));
-        }
+  Widget buildHomeExplore() {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: _todaysDealProducts?.products?.length ?? 0,
+      itemExtent: 200,
+      itemBuilder: (context, index) {
+        final item = _todaysDealProducts?.products?[index];
         return Container(
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: featuredCategoryResponse.products?.length,
-            itemExtent: 200,
-            itemBuilder: (context, index) {
-              final item = featuredCategoryResponse.products?[index];
-              return Container(
-                margin: EdgeInsets.only(right: 16),
-                child: ProductCard(
-                    product: item!,
-                    products: featuredCategoryResponse.products ?? []),
-              );
-            },
-          ),
+          margin: EdgeInsets.only(right: 16),
+          child: ProductCard(
+              product: item!,
+              products: _todaysDealProducts?.products ?? []),
         );
       },
     );
   }
 
-  CustomFutureBuilder<ProductMiniResponse> buildHomeNewCollection(context) {
-    return CustomFutureBuilder<ProductMiniResponse>(
-      future: ProductRepository().getBestSellingProducts(),
-      isShimmerLoading: true,
-      child: (snapshot) {
-        final featuredCategoryResponse = snapshot.data;
-        if (featuredCategoryResponse!.products!.isEmpty) {
-          return const Center(
-              child: Text('No data is available at this Location'));
-        }
-        return Container(
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: featuredCategoryResponse.products?.length,
-            itemExtent: 300,
-            itemBuilder: (context, index) {
-              final item = featuredCategoryResponse.products?[index];
-              return NewCollectionCard(
-                  product: item!,
-                  products: featuredCategoryResponse.products ?? []);
-            },
-          ),
-        );
+  Widget buildHomeNewCollection() {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: _bestSellingProducts?.products?.length ?? 0,
+      itemExtent: 300,
+      itemBuilder: (context, index) {
+        final item = _bestSellingProducts?.products?[index];
+        return NewCollectionCard(
+            product: item!,
+            products: _bestSellingProducts?.products ?? []);
       },
     );
+  
   }
 
   AppBar buildAppBar(double statusBarHeight, BuildContext context) {
@@ -396,16 +415,18 @@ class _ProductCardState extends State<ProductCard> {
       );
 
       if (response.statusCode == 200) {
+        print(response.body);
         final jsonResponse = jsonDecode(response.body);
-        int status = jsonResponse['status'];
+        int result = jsonResponse['result'];
 
         setState(() {
-          isAddedToWishlist = status == 1;
+          isAddedToWishlist = result == 1;
           imagePath = isAddedToWishlist
               ? 'assets/icons-34.png'
               : 'assets/explore_fav.png';
         });
       } else {
+        print(response.body);
         throw Exception('Failed to load wishlist status');
       }
     } catch (e) {
@@ -413,123 +434,132 @@ class _ProductCardState extends State<ProductCard> {
     }
   }
 
-  Future<void> _addToWishlist(BuildContext context) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String userId = prefs.getString('userId') ?? '';
-      String accessToken = prefs.getString('accessToken') ?? '';
+ Future<void> _addToWishlist(BuildContext context) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userId = prefs.getString('userId') ?? '';
+    String accessToken = prefs.getString('accessToken') ?? '';
 
-      final url = Uri.http('nailgo.ae', '/api/v2/wishlists-add-product', {
-        'product_id': widget.product.id.toString(),
+    final url = Uri.http('nailgo.ae', '/api/v2/wishlists-add-product');
+    
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
         'user_id': userId,
+        'product_id': widget.product.id.toString(),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print(response.body);
+      setState(() {
+        isAddedToWishlist = true;
+        imagePath = 'assets/icons-34.png';
       });
 
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          isAddedToWishlist = true;
-          imagePath = 'assets/icons-34.png';
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.favorite, color: Colors.red),
-                SizedBox(width: 8),
-                Text(
-                  'Product added to wishlist',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ],
-            ),
-            backgroundColor: const Color.fromARGB(255, 209, 180, 137),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add product to wishlist'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Row(
+            children: [
+              Icon(Icons.favorite, color: Colors.red),
+              SizedBox(width: 8),
+              Text(
+                'Product added to wishlist',
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+          backgroundColor: const Color.fromARGB(255, 209, 180, 137),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      print(response.body);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add product to wishlist'),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
       );
     }
+  } catch (e) {
+    print('Error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
+}
 
-  Future<void> _toggleWishlist(BuildContext context) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String userId = prefs.getString('userId') ?? '';
-      String accessToken = prefs.getString('accessToken') ?? '';
 
-      final url = Uri.http(
-          'nailgo.ae',
-          isAddedToWishlist
-              ? '/api/v2/wishlists-remove-product'
-              : '/api/v2/wishlists-add-product',
-          {
-            'product_id': widget.product.id.toString(),
-            'user_id': userId,
-          });
+ Future<void> _toggleWishlist(BuildContext context) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userId = prefs.getString('userId') ?? '';
+    String accessToken = prefs.getString('accessToken') ?? '';
 
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
+    final url = Uri.http(
+        'nailgo.ae',
+        isAddedToWishlist
+            ? '/api/v2/wishlists-remove-product'
+            : '/api/v2/wishlists-add-product');
+    
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'user_id': userId,
+        'product_id': widget.product.id.toString(),
+      }),
+    );
 
-      if (response.statusCode == 200) {
-        setState(() {
-          isAddedToWishlist = !isAddedToWishlist;
-          imagePath = isAddedToWishlist
-              ? 'assets/icons-34.png'
-              : 'assets/explore_fav.png';
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isAddedToWishlist
-                ? 'Failed to remove product from wishlist'
-                : 'Failed to add product to wishlist'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error: $e');
+    if (response.statusCode == 200) {
+      print(response.body);
+      setState(() {
+        isAddedToWishlist = !isAddedToWishlist;
+        imagePath = isAddedToWishlist
+            ? 'assets/icons-34.png'
+            : 'assets/explore_fav.png';
+      });
+    } else {
+      print(response.body);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text(isAddedToWishlist
+              ? 'Failed to remove product from wishlist'
+              : 'Failed to add product to wishlist'),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
       );
     }
+  } catch (e) {
+    print('Error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error: $e'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
-    _checkWishlistStatus();
+   
     final isRTL = EasyLocalization.of(context)!.locale!.languageCode == 'ar';
 
     return Padding(
@@ -621,7 +651,7 @@ class _ProductCardState extends State<ProductCard> {
                                 ),
                               ),
                               Text(
-                                'AED ${widget.product.mainPrice!.replaceAll('Rs', '')}',
+                                '${widget.product.mainPrice!.replaceAll('Rs', '')}',
                                 textAlign: TextAlign.left,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
@@ -786,7 +816,7 @@ class NewCollectionCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'AED ${product.mainPrice!.replaceAll('Rs', '')}',
+                        '${product.mainPrice!}',
                         textAlign: TextAlign.left,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,

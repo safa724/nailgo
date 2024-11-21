@@ -187,7 +187,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Text(
-                  'AED ${product.mainPrice!.replaceAll('Rs', '')}',
+                  '${product.mainPrice!.replaceAll('Rs', '')}',
                   style: TextStyle(
                     fontSize: 24.0,
                     color: Color.fromARGB(255, 134, 34, 3),

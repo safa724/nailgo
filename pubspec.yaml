@@ -47,12 +47,10 @@ dependencies:
   flutter_html: ^3.0.0-beta.2
   path_provider: ^2.1.1
   toast: ^0.3.0
-  social_share: ^2.3.1
   url_launcher: ^6.2.2
   provider: ^6.1.1
   camera: ^0.10.5+7
   flutter_secure_storage: ^8.1.0
-  flutter_tflite: ^1.0.1
   shared_preferences: ^2.2.3
   easy_localization: ^3.0.5
   

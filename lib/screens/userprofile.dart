@@ -54,33 +54,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     } else {}
   }
 
-  Future<void> fetchCounts() async {
-    final url = Uri.parse('http://nailgo.ae/api/v2/profile/count');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String accessToken = prefs.getString('accessToken') ?? '';
+ Future<void> fetchCounts() async {
+  final url = Uri.parse('http://nailgo.ae/api/v2/profile/counters');
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String accessToken = prefs.getString('accessToken') ?? '';
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
+  final response = await http.get( // Use GET if the API requires it
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        orderCount = data['ordercount'];
-        cartCount = data['cartcount'];
-        wishlistCount = data['wishlistcount'];
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-    }
+  if (response.statusCode == 200) {
+    print(response.body);
+    final data = jsonDecode(response.body);
+
+    setState(() {
+      orderCount = data['order_count'] ?? 0;
+      cartCount = data['cart_item_count'] ?? 0;
+      wishlistCount = data['wishlist_item_count'] ?? 0;
+      isLoading = false;
+    });
+  } else {
+    print('Error: ${response.statusCode} - ${response.body}');
+    setState(() {
+      isLoading = false;
+    });
   }
+}
+
 
   Future<void> checkLoginStatus() async {
     //  SharedPreferences prefs = await SharedPreferences.getInstance();

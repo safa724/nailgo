@@ -143,193 +143,112 @@ class _CustomServiceState extends State<CustomService> {
       );
     }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 50),
+            Text(
+              'support'.tr(),
+              style: TextStyle(fontSize: 25),
+            ),
+            SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('fn'.tr()),
+                SizedBox(height: 5),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('email'.tr()),
+                SizedBox(height: 5),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('phone'.tr()),
+                SizedBox(height: 5),
+                TextField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('notes'.tr()),
+                SizedBox(height: 5),
+                TextField(
+                  controller: _notesController,
+                  maxLines: 6,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            InkWell(
+              onTap: _sendDetails,
+              child: Container(
                 height: 50,
-              ),
-              Text(
-                'support'.tr(),
-                style: TextStyle(fontSize: 25),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('fn'.tr()),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    width: 362,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: TextField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('email'.tr()),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    width: 362,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: TextField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('phone'.tr()),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    width: 362,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: TextField(
-                        controller: _phoneController,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('notes'.tr()),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Container(
-                    width: 362,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: TextField(
-                        controller: _notesController,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              InkWell(
-                onTap: _sendDetails,
-                child: Container(
-                  height: 50,
-                  width: 362,
-                  child: Center(
-                    child: Text('send'.tr(),
-                        style: TextStyle(color: Colors.white, fontSize: 20)),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 185, 92, 4),
-                    borderRadius: BorderRadius.circular(5.0),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 185, 92, 4),
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                child: Center(
+                  child: Text(
+                    'send'.tr(),
+                    style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ),
               ),
-              SizedBox(
-                height: 60,
-              ),
-              // InkWell(
-              //   onTap: _launchWhatsApp,
-              //   child: Container(
-              //     height: 50,
-              //     width: 362,
-              //     child: Center(
-              //       child: Text('whats'.tr(), style: TextStyle(color: Colors.white,fontSize: 20)),
-              //     ),
-              //     decoration: BoxDecoration(
-              //       color: Color.fromARGB(255, 185, 92, 4),
-              //       borderRadius: BorderRadius.circular(5.0),
-              //     ),
-              //   ),
-              // ),
-              // SizedBox(height: 15,),
-              // InkWell(
-              //   onTap: _makePhoneCall,
-              //   child: Container(
-              //     height: 50,
-              //     width: 362,
-              //     child: Center(
-              //       child: Text('call'.tr(), style: TextStyle(color: Colors.white,fontSize: 20)),
-              //     ),
-              //     decoration: BoxDecoration(
-              //       color: Color.fromARGB(255, 185, 92, 4),
-              //       borderRadius: BorderRadius.circular(5.0),
-              //     ),
-              //   ),
-              // ),
-            ],
-          ),
+            ),
+            SizedBox(height: 60),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

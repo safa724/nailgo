@@ -133,7 +133,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                               ),
                               title: Text(product.name),
                               subtitle: Text(
-                                'AED ${product.basePrice.replaceAll('Rs', '')}',
+                                '${product.basePrice.replaceAll('Rs', '')}',
                                 style: TextStyle(
                                     color: Color.fromARGB(255, 185, 92, 4)),
                               ),
