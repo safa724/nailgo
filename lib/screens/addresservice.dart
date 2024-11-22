@@ -52,13 +52,13 @@ class AddressService {
         body: jsonEncode({
           "user_id": userId,
           "address": address,
-          "country_id": "",
-          "city_id": "",
-          "state_id": "",
-          "postal_code": "",
+          "country_id": "101",
+          "city_id": "1843",
+          "state_id": "19",
+          "postal_code": "68001",
           "phone": phone,
-          "latitude": "",
-          "longitude": ""
+          "latitude": "37.7749",
+          "longitude": "-122.4194"
         }),
       );
 

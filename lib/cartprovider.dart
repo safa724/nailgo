@@ -35,51 +35,58 @@ bool get isLoading => _loading;
 
 
   
-  Future<void> fetchCartItems() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      String accessToken = prefs.getString('accessToken') ?? '';
-      if (accessToken.isEmpty) {
-        print('Access token is empty!');
-        return;
-      }
-
-      final response = await http.post(
-        Uri.parse('http://nailgo.ae/api/v2/cartslist'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        Map<String, dynamic> responseData = jsonDecode(response.body);
-        if (responseData['data'] != null && responseData['data'] is List) {
-          List<dynamic> cartData = responseData['data'];
-
-          if (cartData.isNotEmpty) {
-            int ownerId = cartData[0]['owner_id'];
-            await prefs.setInt('ownerId', ownerId);
-          }
-
-          // Update _grandTotal with the value from the response
-          _grandTotal = responseData['grand_total'] ?? '0.00';
-
-          _cartItems = cartData;
-          _updateCartItemCount();
-          notifyListeners();
-          _processRequestQueue();
-        } else {
-          print('No data found in the response');
-        }
-      } else {
-        print('Failed to fetch cart items: ${response.statusCode}');
-        print('Response body: ${response.body}');
-      }
-    } catch (error) {
-      print('Error fetching cart items: $error');
+ Future<void> fetchCartItems() async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String accessToken = prefs.getString('accessToken') ?? '';
+    if (accessToken.isEmpty) {
+      print('Access token is empty!');
+      return;
     }
+
+    final response = await http.post(
+      Uri.parse('http://nailgo.ae/api/v2/cartslist'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseData = jsonDecode(response.body);
+      if (responseData['data'] != null && responseData['data'] is List) {
+        List<dynamic> cartData = responseData['data'];
+
+        if (cartData.isNotEmpty) {
+          int ownerId = cartData[0]['owner_id'];
+          print('ownerId: $ownerId');  // Add this to verify the ownerId
+
+          // Store ownerId in SharedPreferences
+          await prefs.setInt('ownerId', ownerId);
+
+          // Check if the ownerId is successfully stored
+          print('Stored ownerId: ${prefs.getInt('ownerId')}');
+        }
+
+        // Update _grandTotal with the value from the response
+        _grandTotal = responseData['grand_total'] ?? '0.00';
+
+        _cartItems = cartData;
+        _updateCartItemCount();
+        notifyListeners();
+        _processRequestQueue();
+      } else {
+        print('No data found in the response');
+      }
+    } else {
+      print('Failed to fetch cart items: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  } catch (error) {
+    print('Error fetching cart items: $error');
   }
+}
+
 
 
 

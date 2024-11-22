@@ -50,20 +50,60 @@ class _EditProfileState extends State<EditProfile> {
     });
   }
 
-  Future<void> checkLoginStatus() async {
+Future<void> checkLoginStatus() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  setState(() {
+    isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    if (isLoggedIn) {
+      userName = prefs.getString('userName') ?? '';
+      userEmail = prefs.getString('userEmail') ?? '';
+      // Prefill controllers with values from SharedPreferences or default empty string
+      firstNameController.text = userName;
+      emailController.text = userEmail;
+      
+      // Call the API to get profile details
+      fetchProfile();
+    } else {
+      addressController.text = 'noaddress'.tr();
+    }
+  });
+}
+
+Future<void> fetchProfile() async {
+  try {
+    final url = Uri.parse('http://nailgo.ae/api/v2/profile/getprofile');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-      if (isLoggedIn) {
-        userName = prefs.getString('userName') ?? '';
-        userEmail = prefs.getString('userEmail') ?? '';
-        firstNameController.text = userName;
-        emailController.text = userEmail;
-      } else {
-        addressController.text = 'noaddress'.tr();
-      }
-    });
+    String accessToken = prefs.getString('accessToken') ?? '';
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      var userData = data['data'][0]; // Assuming the data is in a list as in your example
+
+      setState(() {
+        firstNameController.text = userData['name'] ?? '';  // Prefill firstName
+        emailController.text = userData['email'] ?? '';  // Prefill email
+        phoneNumberController.text = userData['phone'] ?? '';  // Prefill phone number if available
+        cityController.text = userData['city'] ?? '';  // Prefill city if available
+        addressController.text = userData['address'] ?? '';  // Prefill address if available
+        emiratesController.text = userData['emirates'] ?? '';  // Prefill emirates if available
+      });
+    } else {
+      // Handle error if API request fails
+      _showDialog('error'.tr(), 'failedtofetchprofile'.tr());
+    }
+  } catch (e) {
+    _showDialog('error'.tr(), 'erroroccured'.tr());
   }
+}
+
 
   Future<List<String>> fetchCities() async {
     try {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nailgonew/screens/directions2.dart';
@@ -102,7 +103,7 @@ class _CameraScreenState extends State<CameraScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Camera Screen'),
+        title: Text("camera".tr()),
       ),
       body: Stack(
         alignment: Alignment.center,
@@ -156,7 +157,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     });
 
     try {
-      String apiUrl = 'http://93.127.199.143:5009/upload';
+      String apiUrl = 'http://93.127.199.143:5010/upload';
 
       var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
       request.files.add(
@@ -229,49 +230,54 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
 
   Future<void> _processApiResponse(
-      BuildContext context, String responseBody) async {
-    try {
-      Map<String, dynamic> responseMap = json.decode(responseBody);
+    BuildContext context, String responseBody) async {
+  try {
+    Map<String, dynamic> responseMap = json.decode(responseBody);
 
-      if (responseMap.containsKey('data') &&
-          responseMap['data'] is List<dynamic>) {
-        List<Map<String, String>> fingerDetails = [];
+    if (responseMap.containsKey('data') && responseMap['data'] is List<dynamic>) {
+      List<Map<String, String>> fingerDetails = [];
 
-        for (var item in responseMap['data']) {
-          if (item.containsKey('Finger') && item['Finger'] is List) {
-            List<dynamic> fingerList = item['Finger'];
-            if (fingerList.length >= 2) {
-              String width = fingerList[0]['width in cm'] ?? 'N/A';
-              String height = fingerList[1]['height in cm'] ?? 'N/A';
-              fingerDetails.add({
-                'width': width,
-                'height': height,
-              });
-            }
+      for (var item in responseMap['data']) {
+        if (item.containsKey('Finger') && item['Finger'] is List) {
+          List<dynamic> fingerList = item['Finger'];
+          if (fingerList.length >= 2) {
+            String width = fingerList[0]['width in cm'] ?? 'N/A';
+            String height = fingerList[1]['height in cm'] ?? 'N/A';
+            fingerDetails.add({
+              'width': width,
+              'height': height,
+            });
           }
         }
+      }
 
-        if (fingerDetails.isNotEmpty) {
-          _showSuccessPopup(context, fingerDetails);
-          _showMessage(context, 'Image uploaded successfully', Colors.green);
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('saved_image_path', widget.imageFile.path);
-        } else {
-          print('Error: No valid finger details found in API response');
-          _showMessage(context, 'Failed to process API response', Colors.red);
-          Navigator.pop(context);
-        }
+      if (fingerDetails.isNotEmpty) {
+        // Save the finger details in SharedPreferences as a JSON string
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String fingerDetailsJson = jsonEncode(fingerDetails);
+        await prefs.setString('finger_details', fingerDetailsJson);
+
+        _showSuccessPopup(context, fingerDetails);
+        _showMessage(context, 'Image uploaded successfully', Colors.green);
+
+        // Save the image path if needed
+        await prefs.setString('saved_image_path', widget.imageFile.path);
       } else {
-        print('Error: Unexpected API response format');
+        print('Error: No valid finger details found in API response');
         _showMessage(context, 'Failed to process API response', Colors.red);
         Navigator.pop(context);
       }
-    } catch (e) {
-      print('Error processing API response: $e');
+    } else {
+      print('Error: Unexpected API response format');
       _showMessage(context, 'Failed to process API response', Colors.red);
       Navigator.pop(context);
     }
+  } catch (e) {
+    print('Error processing API response: $e');
+    _showMessage(context, 'Failed to process API response', Colors.red);
+    Navigator.pop(context);
   }
+}
 
   void _showSuccessPopup(
       BuildContext context, List<Map<String, String>> fingerDetails) {
@@ -286,45 +292,16 @@ class _LoadingScreenState extends State<LoadingScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Image.asset('assets/checked.png'),
-              Text('Success', style: TextStyle(color: Colors.green)),
+              Text('success'.tr(), style: TextStyle(color: Colors.green)),
             ],
           ),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 Text(
-                    'Your four-finger measurements have been saved successfully! Please capture your thumb!'),
+                    'fourfingerinformation'.tr()),
                 SizedBox(height: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: fingerDetails.asMap().entries.map((entry) {
-                    int index = entry.key + 1;
-                    Map<String, String> finger = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 5.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Finger $index:',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Color.fromARGB(255, 185, 92, 4),
-                              )),
-                          SizedBox(width: 5),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Width: ${finger['width']}',
-                                  style: TextStyle(fontSize: 15)),
-                              Text('Height: ${finger['height']}',
-                                  style: TextStyle(fontSize: 15)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
+              
               ],
             ),
           ),
@@ -340,7 +317,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 );
               },
               child: Text(
-                'Capture Thumb',
+                'capturethumb'.tr(),
                 style: TextStyle(
                   color: Color.fromARGB(255, 185, 92, 4),
                   fontWeight: FontWeight.bold,

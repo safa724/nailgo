@@ -31,28 +31,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     fetchCounts();
     fetchProfile();
   }
+Future<void> fetchProfile() async {
+  final url = Uri.parse('http://nailgo.ae/api/v2/profile/getprofile');
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String accessToken = prefs.getString('accessToken') ?? '';
 
-  Future<void> fetchProfile() async {
-    final url = Uri.parse('http://nailgo.ae/api/v2/profile/get');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String accessToken = prefs.getString('accessToken') ?? '';
+  final response = await http.post(
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    
+    // Accessing the first element of the 'data' list
+    var userData = data['data'][0];
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        userName = data['message']['name'];
-        userEmail = data['message']['email'];
-      });
-    } else {}
+    setState(() {
+      userName = userData['name'];  // Access 'name' from the first element of 'data'
+      userEmail = userData['email'];  // Access 'email' from the first element of 'data'
+    });
+  } else {
+    // Handle the error appropriately
   }
+}
 
  Future<void> fetchCounts() async {
   final url = Uri.parse('http://nailgo.ae/api/v2/profile/counters');

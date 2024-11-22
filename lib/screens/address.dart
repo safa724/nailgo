@@ -352,7 +352,7 @@ Future<void> _updateAddressInCart() async {
                     color: Color.fromARGB(255, 185, 92, 4)),
                 child: Center(
                     child: Text(
-                  "PLACE YOUR ORDER",
+                  "placeorder".tr(),
                   style: TextStyle(color: Colors.white),
                 )),
               ),
@@ -402,7 +402,7 @@ Future<void> _updateAddressInCart() async {
                             Text(
                               address.address != null
                                   ? address.address!
-                                  : 'No address available',
+                                  : "noaddressavailable".tr(),
                               maxLines: 4,
                               overflow: TextOverflow.ellipsis,
                               style:

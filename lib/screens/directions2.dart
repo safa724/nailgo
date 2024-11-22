@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nailgonew/screens/camera2.dart';
 
@@ -16,7 +17,7 @@ class Direction2 extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Text(
-                'Please place your thumb on a plain background while hiding the other fingers, like this, during scanning ',
+                'thumbinstruction'.tr(),
                 style: TextStyle( color: Colors.black,fontSize: 12),
               ),
             ),
@@ -29,13 +30,13 @@ class Direction2 extends StatelessWidget {
            Padding(
               padding: const EdgeInsets.all(10.0),
               child: Text(
-                'And take picture with a shortest distance for getting accuracy in measurement',
+                'thumbinstruction2'.tr(),
                 style: TextStyle( color: Colors.black,fontSize: 12),
               ),
             ),
             SizedBox(height: 60),
             BrownButton(
-              label: 'CONTINUE',
+              label: 'continue'.tr(),
               onPressed: () {
                 Navigator.pushReplacement(
                   context,

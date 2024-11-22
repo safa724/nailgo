@@ -53,6 +53,8 @@ dependencies:
   flutter_secure_storage: ^8.1.0
   shared_preferences: ^2.2.3
   easy_localization: ^3.0.5
+  webview_flutter: ^2.0.8
+
   
 
   

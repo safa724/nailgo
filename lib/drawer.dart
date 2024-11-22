@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nailgonew/localizationchecker.dart';
 import 'package:nailgonew/screens/cart.dart';
+import 'package:nailgonew/screens/direction.dart';
 import 'package:nailgonew/screens/login.dart';
 import 'package:nailgonew/screens/service.dart';
 import 'package:nailgonew/screens/userprofile.dart';
@@ -42,27 +43,36 @@ class _MainDrawerState extends State<MainDrawer> {
     });
   }
 
-  Future<void> fetchProfile() async {
-    final url = Uri.parse('http://nailgo.ae/api/v2/profile/get');
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String accessToken = prefs.getString('accessToken') ?? '';
+Future<void> fetchProfile() async {
+  final url = Uri.parse('http://nailgo.ae/api/v2/profile/getprofile');
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String accessToken = prefs.getString('accessToken') ?? '';
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
+  final response = await http.post(
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    if (data['result'] == true) {
+      var userData = data['data'][0];
       setState(() {
-        userName = data['message']['name'];
-        userEmail = data['message']['email'];
+        userName = userData['name'];
+        userEmail = userData['email'];
       });
-    } else {}
+    } else {
+      print('API returned an error: ${data['message'] ?? 'Unknown error'}');
+    }
+  } else {
+    print('Failed to fetch profile. Status code: ${response.statusCode}');
   }
+}
+
+
 
   void _logOut(BuildContext context) {
     showDialog(
@@ -135,13 +145,15 @@ class _MainDrawerState extends State<MainDrawer> {
                         color: Colors.white,
                         size: 48,
                       ),
-                      Text(
-                        userName,
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white),
-                      )
+                    Text(
+  userName.isEmpty ? '' : userName,
+  style: TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: Colors.white,
+  ),
+)
+
                     ],
                   ),
                 ),
@@ -268,7 +280,26 @@ class _MainDrawerState extends State<MainDrawer> {
                           fontSize: 18)),
                   onTap: () {
                     _logOut(context);
-                  })
+                  }),
+                  //   ListTile(
+                  // visualDensity:
+                  //     const VisualDensity(horizontal: -4, vertical: -4),
+                  // leading: Image.asset(
+                  //   'assets/cart_ic.png',
+                  //   height: 24,
+                  //   color: Colors.red,
+                  // ),
+                  // title: Text('test',
+                  //     style: TextStyle(
+                  //         color: Colors.black,
+                  //         fontWeight: FontWeight.w400,
+                  //         fontSize: 18)),
+                  // onTap: () {
+                  //   Navigator.push(context,
+                  //       MaterialPageRoute(builder: (context) {
+                  //     return LoadingPage();
+                  //   }));
+                  // }),
             ],
           ),
         ),

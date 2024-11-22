@@ -1,10 +1,27 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:nailgonew/screens/camera.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
 
-class LoadingPage extends StatelessWidget {
+class LoadingPage extends StatefulWidget {
+  @override
+  State<LoadingPage> createState() => _LoadingPageState();
+}
+
+class _LoadingPageState extends State<LoadingPage> {
+   @override
+  void initState() {
+    super.initState();
+    _clearFingerData();
+  }
+    Future<void> _clearFingerData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('finger_details'); // Remove finger data key
+    print('Finger data cleared');
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,7 +36,7 @@ class LoadingPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  'Please place your four fingers on a plane background like this while scanning',
+                  'fourfingerinstruction'.tr(),
                   style: TextStyle(color: Colors.black,fontSize: 15),
                 ),
               ),
@@ -33,13 +50,13 @@ class LoadingPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  'And take picture with a shortest distance for getting accuracy in measurement',
+                  'fourfingerinstruction2'.tr(),
                   style: TextStyle( color: Colors.black,fontSize: 15),
                 ),
               ),
               SizedBox(height: 60),
               BrownButton(
-                label: 'CONTINUE',
+                label: 'continue'.tr(),
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,

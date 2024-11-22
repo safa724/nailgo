@@ -95,7 +95,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               content: Row(
                 children: [
                   Expanded(
-                    child: Text('Added to Cart'),
+                    child: Text('addedtocart'.tr()),
                   ),
                   TextButton(
                     onPressed: () {
@@ -109,7 +109,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       );
                     },
                     child: Text(
-                      'Go to Cart',
+                      'gotocart'.tr(),
                       style: TextStyle(color: Color.fromARGB(255, 185, 92, 4)),
                     ),
                   ),
@@ -213,7 +213,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Text(
-                  'Description',
+                  'description'.tr(),
                   style: TextStyle(fontSize: 14),
                 ),
               ),

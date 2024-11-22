@@ -45,7 +45,6 @@
     "go":"Go to Cart",
     "make":"Make Payment",
     "yourimages":"Your Images",
-    "continue":"Continue",
     "rem":"Remove Item",
     "doyou":"Do you want to remove item from the cart?",
     "remove":"REMOVE",
@@ -85,7 +84,28 @@
     "addaddress":"Add Address",
     "phonemust":"Phone number must be 10 digits",
     "validation":"Validation Error",
-    "getaddress":"Get Address"
+    "getaddress":"Get Address",
+
+    "placeorder":"PLACE YOUR ORDER",
+    "noaddressavailable":"No Address Available",
+    "camera":"Camera Screen",
+    "fourfingerinformation":"Your four-finger measurements have been saved successfully! Please capture your thumb!",
+    "capturethumb":"Capture Thumb",
+    "fivefinger":"All five finger measurements have been saved successfully!",
+    "gotoshop":"GO TO SHOPPING",
+    "somefields":"It looks like some fields are missing. Please fill all the required fields before proceeding.",
+    "orderrr":"ORDER",
+    "fourfingerinstruction":"Please place your four fingers on a plane background like this while scanning",
+    "fourfingerinstruction2":"And take picture with a shortest distance for getting accuracy in measurement",
+    "continue":"CONTINUE",
+    "thumbinstruction":"Please place your thumb on a plain background while hiding the other fingers, like this, during scanning ",
+    "thumbinstruction2":"And take picture with a shortest distance for getting accuracy in measurement",
+    "paymentunsuccesful":"Payment Unsuccessful , Please try Agian Later",
+    "continueshopping":"CONTINUE SHOPPPING",
+    "addedtocart":"Added to Cart",
+    "gotocart":"Go to Cart",
+    "description":"Description",
+    "successdialogue":"Your order has been successfully placed!"
     
     
     

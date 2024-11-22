@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nailgonew/screens/addresmodel.dart';
+import 'package:nailgonew/screens/payment.dart';
 import 'package:nailgonew/screens/succsus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,7 +69,7 @@ Future<void> fetchPaymentTypes() async {
         paymentOptions = jsonData.map<Map<String, String>>((paymentType) {
           return {
             'payment_type_key': paymentType['payment_type_key'],
-            'name': paymentType['name'],
+            'title': paymentType['title'],
             'image': paymentType['image'],
           };
         }).toList();
@@ -143,54 +145,128 @@ void _createOrder() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String accessToken = prefs.getString('accessToken') ?? '';
     String userId = prefs.getString('userId') ?? '';
+    int? ownerId = prefs.getInt('ownerId');
 
     if (accessToken.isNotEmpty && userId.isNotEmpty) {
-      Map<String, dynamic> requestBody = {
-        "owner_id": userId,
-        "user_id": userId,
-        "payment_type": selectedPaymentOptionKey ?? "cash_on_delivery"
-      };
-
-      Uri url = Uri.http('nailgo.ae', '/api/v2/order/store');
-
-      Map<String, String> headers = {
+      // 1. Fetch finger data first
+      Map<String, String> fingerHeaders = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
       };
 
       try {
-        final response = await http.post(
-          url,
-          headers: headers,
-          body: jsonEncode(requestBody),
+        final fingerResponse = await http.post(
+          Uri.http('nailgo.ae', '/api/v2/getfingerdata'),
+          headers: fingerHeaders,
+          body: jsonEncode({"id": userId}),
         );
 
-        if (response.statusCode == 200) {
-          print("Order created successfully!");
+        if (fingerResponse.statusCode == 200) {
+          // Parse the finger data response
+          var fingerData = jsonDecode(fingerResponse.body)['finger_data'];
 
-          // Print all values
-          print("First Name: ${firstNameController.text}");
-          print("Email: ${emailController.text}");
-          print("Phone Number: ${phoneNumberController.text}");
-          print("Address: ${addressController.text}");
-          print("City: $selectedCity");
-          print("Emirates: $selectedEmirates");
-          print("Payment Option: $selectedPaymentOptionKey");
-          print("Response Body: ${response.body}");
+          // 2. Proceed to create the order
+          Map<String, dynamic> requestBody = {
+            "owner_id": ownerId,
+            "user_id": userId,
+            "payment_type": selectedPaymentOptionKey,
+            "finger_data": fingerData,  // Add the finger data here
+          };
+print('Finger Data: ${requestBody['finger_data']}'); // Log the finger data
+          Uri url = Uri.http('nailgo.ae', '/api/v2/order/store');
 
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => Success()));
+          Map<String, String> headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+          };
+
+          try {
+            final response = await http.post(
+              url,
+              headers: headers,
+              body: jsonEncode(requestBody),
+            );
+
+            if (response.statusCode == 200) {
+           print('Finger Data: ${requestBody['finger_data']}'); // Log the finger data
+              print(response.body);
+              print("Order created successfully!");
+              // Parse the response body
+              var responseBody = jsonDecode(response.body);
+              var combinedOrderId = responseBody['combined_order_id'];
+
+              // If payment is Cash on Delivery, go to the Success page
+              if (selectedPaymentOptionKey == 'Cash on Delivery') {
+                Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => Success()));
+              } else {
+                // Otherwise, fetch the payment link
+                Map<String, dynamic> paymentRequestBody = {
+                  "id": userId,  // Replace with your actual ID if needed
+                  "order_id": combinedOrderId,
+                };
+
+                try {
+                  final paymentResponse = await http.post(
+                    Uri.http('nailgo.ae', '/api/v2/getpaymentlink'),
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': 'Bearer $accessToken',
+                    },
+                    body: jsonEncode(paymentRequestBody),
+                  );
+
+                  if (paymentResponse.statusCode == 200) {
+                    var responseData = jsonDecode(paymentResponse.body);
+                    String paymentLink = responseData['payment_link'];
+                    String orderReference = responseData['order_reference'];
+                    String accessToken = responseData['access_token'];  // Assuming this token is returned
+
+                    // Load the payment link in a WebView
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WebViewPage(
+                          url: paymentLink,
+                          orderReference: orderReference,
+                          accessToken: accessToken,
+                        ),
+                      ),
+                    );
+                  } else {
+                    setState(() {
+                      errorMessage = 'Failed to get payment link: ${paymentResponse.statusCode}';
+                    });
+                  }
+                } catch (e) {
+                  setState(() {
+                    errorMessage = 'Error fetching payment link: $e';
+                  });
+                }
+              }
+            } else {
+              setState(() {
+                errorMessage = 'Failed to create order: ${response.statusCode}';
+              });
+            }
+          } catch (e) {
+            setState(() {
+              errorMessage = 'Error creating order: $e';
+            });
+          } finally {
+            setState(() {
+              isLoading = false; // Hide the loader
+            });
+          }
         } else {
           setState(() {
-            errorMessage = 'Failed to create order: ${response.statusCode}';
+            errorMessage = 'Failed to get finger data: ${fingerResponse.statusCode}';
+            isLoading = false; // Hide the loader
           });
         }
       } catch (e) {
         setState(() {
-          errorMessage = 'Error creating order: $e';
-        });
-      } finally {
-        setState(() {
+          errorMessage = 'Error fetching finger data: $e';
           isLoading = false; // Hide the loader
         });
       }
@@ -217,7 +293,7 @@ void _showFillFieldsDialog() {
           ],
         ),
         content: Text(
-          'It looks like some fields are missing. Please fill all the required fields before proceeding.',
+          'somefields'.tr(),
           style: TextStyle(fontSize: 16),
         ),
         actions: <Widget>[
@@ -225,7 +301,7 @@ void _showFillFieldsDialog() {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('OK', style: TextStyle(color: Colors.orange)),
+            child: Text('ok'.tr(), style: TextStyle(color: Colors.orange)),
           ),
         ],
       );
@@ -287,7 +363,7 @@ Widget build(BuildContext context) {
               children: <Widget>[
                 SizedBox(height: 5),
                 Text(
-                  'Check Out',
+                  'checkout'.tr(),
                   style: TextStyle(fontSize: 25),
                 ),
                 SizedBox(height: 40),
@@ -361,7 +437,7 @@ _buildInputField(
   isDropdown: true,
   dropdownValue: selectedPaymentOptionKey,
   items: paymentOptions
-      .map((paymentType) => paymentType['name'] ?? '') // Default to empty string if null
+      .map((paymentType) => paymentType['title'] ?? '') // Default to empty string if null
       .where((value) => value.isNotEmpty) // Remove any empty values if needed
       .toList(),
   onChanged: (value) {
@@ -386,7 +462,7 @@ _buildInputField(
                     width: double.infinity,
                     child: Center(
                       child: Text(
-                        'ORDER',
+                        'orderrr'.tr(),
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
                     ),
