@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +9,7 @@ import 'package:nailgonew/screens/applepay.dart';
 import 'package:nailgonew/screens/payment.dart';
 import 'package:nailgonew/screens/succsus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 
 class CheckOut extends StatefulWidget {
   final Address? selectedAddress;
@@ -51,6 +50,7 @@ String? selectedPaymentOptionKey;
 
 
 
+
 Future<void> fetchPaymentTypes() async {
   try {
     final response = await http.get(Uri.http('nailgo.ae', '/api/v2/payment-types'));
@@ -60,28 +60,21 @@ Future<void> fetchPaymentTypes() async {
       final List<dynamic> jsonData = jsonDecode(response.body);
 
       setState(() {
-        // Filter options based on platform
-        if (Platform.isIOS) {
-          paymentOptions = [
-            {
-              'payment_type_key': 'cash_on_delivery',
-              'title': 'Cash on Delivery',
-              'image': 'http://nailgo.ae/public/assets/img/cards/cod.png',
-            },
-            {
-              'payment_type_key': 'apple_pay',
-              'title': 'Checkout with Apple Pay',
-              'image': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Apple_Pay_logo.svg/1200px-Apple_Pay_logo.svg.png',
-            },
-          ];
-        } else {
-          paymentOptions = jsonData.map<Map<String, String>>((paymentType) {
-            return {
-              'payment_type_key': paymentType['payment_type_key'],
-              'title': paymentType['title'],
-              'image': paymentType['image'],
-            };
-          }).toList();
+        paymentOptions = jsonData.map<Map<String, String>>((paymentType) {
+          return {
+            'payment_type_key': paymentType['payment_type_key'],
+            'title': paymentType['title'],
+            'image': paymentType['image'],
+          };
+        }).toList();
+
+        // Add Apple Pay option for iOS
+        if (defaultTargetPlatform == TargetPlatform.iOS) {
+          paymentOptions.add({
+            'payment_type_key': 'Apple Pay',
+            'title': 'CheckOut With Apple Pay',
+            'image': 'assets/applepay.jpg', // Replace with the actual image path
+          });
         }
       });
     } else {
@@ -91,7 +84,6 @@ Future<void> fetchPaymentTypes() async {
     print('Error fetching payment types: $e');
   }
 }
-
 
 
   Future<void> checkLoginStatus() async {
@@ -138,18 +130,16 @@ Future<void> fetchPaymentTypes() async {
  
 
 void _createOrder() async {
-  // Check if all fields are filled
   if (firstNameController.text.isEmpty ||
       emailController.text.isEmpty ||
       phoneNumberController.text.isEmpty ||
       addressController.text.isEmpty ||
       selectedEmirates == null ||
       selectedPaymentOptionKey == null) {
-    // Show an alert dialog if fields are not filled
     _showFillFieldsDialog();
   } else {
     setState(() {
-      isLoading = true; // Show the loader
+      isLoading = true;
     });
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -158,7 +148,6 @@ void _createOrder() async {
     int? ownerId = prefs.getInt('ownerId');
 
     if (accessToken.isNotEmpty && userId.isNotEmpty) {
-      // 1. Fetch finger data first
       Map<String, String> fingerHeaders = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
@@ -174,7 +163,6 @@ void _createOrder() async {
         if (fingerResponse.statusCode == 200) {
           var fingerData = jsonDecode(fingerResponse.body)['finger_data'];
 
-          // 2. Proceed to create the order
           Map<String, dynamic> requestBody = {
             "owner_id": ownerId,
             "user_id": userId,
@@ -183,7 +171,6 @@ void _createOrder() async {
           };
 
           Uri url = Uri.http('nailgo.ae', '/api/v2/order/store');
-
           Map<String, String> headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $accessToken',
@@ -197,27 +184,25 @@ void _createOrder() async {
             );
 
             if (response.statusCode == 200) {
-              print('Finger Data: ${requestBody['finger_data']}');
-              print(response.body);
-              print("Order created successfully!");
-
               var responseBody = jsonDecode(response.body);
               var combinedOrderId = responseBody['combined_order_id'];
-              var totalAmount = responseBody['order_amount']; 
+              var totalAmount = responseBody['order_amount']; // Assuming you receive this field
 
-              if (selectedPaymentOptionKey == 'apple_pay') {
+              if (selectedPaymentOptionKey == 'Cash on Delivery') {
+                Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => Success()));
+              } else if (selectedPaymentOptionKey == 'Apple Pay') {
                 // Navigate to Apple Pay page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ApplePayPage(orderId: combinedOrderId,  totalAmount: totalAmount,)),
-                );
-              } else if (selectedPaymentOptionKey == 'cash_on_delivery') {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => Success()),
+                  MaterialPageRoute(
+                    builder: (context) => ApplePayPage(
+                      orderId: combinedOrderId,
+                      totalAmount: totalAmount,
+                    ),
+                  ),
                 );
               } else {
-                // Proceed with payment link logic for other payment types
                 Map<String, dynamic> paymentRequestBody = {
                   "id": userId,
                   "order_id": combinedOrderId,
@@ -271,25 +256,25 @@ void _createOrder() async {
             });
           } finally {
             setState(() {
-              isLoading = false; // Hide the loader
+              isLoading = false;
             });
           }
         } else {
           setState(() {
             errorMessage = 'Failed to get finger data: ${fingerResponse.statusCode}';
-            isLoading = false; // Hide the loader
+            isLoading = false;
           });
         }
       } catch (e) {
         setState(() {
           errorMessage = 'Error fetching finger data: $e';
-          isLoading = false; // Hide the loader
+          isLoading = false;
         });
       }
     } else {
       setState(() {
         errorMessage = 'Access token or user ID not available';
-        isLoading = false; // Hide the loader
+        isLoading = false;
       });
     }
   }
@@ -452,11 +437,10 @@ _buildInputField(
     });
   },
   itemImages: paymentOptions
-      .map((paymentType) => paymentType['image'] ?? '') // Get the image path
+      .map((paymentType) => paymentType['image'] ?? '') // Assuming 'payment_image' holds image path
       .where((image) => image.isNotEmpty) // Remove any empty values if needed
       .toList(),
 ),
-
 
 
                 SizedBox(height: 30),
