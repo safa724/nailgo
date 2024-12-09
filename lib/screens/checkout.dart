@@ -30,8 +30,8 @@ class _CheckOutState extends State<CheckOut> {
   String userName = '';
   String userEmail = '';
   bool isLoggedIn = false;
-  List<String> cities = [];
-  String? selectedCity;
+
+
 List<Map<String, String>> paymentOptions = [];  // Correctly define as List of Maps
 String? selectedPaymentOptionKey;
 
@@ -40,15 +40,7 @@ String? selectedPaymentOptionKey;
   void initState() {
     super.initState();
     checkLoginStatus();
-    fetchCities().then((value) {
-      setState(() {
-        cities = value;
-
-        selectedCity = null;
-      });
-    }).catchError((error) {
-      print('$error');
-    });
+   
   fetchPaymentTypes(); // Fetch payment types on init
 
   }
@@ -132,7 +124,7 @@ void _createOrder() async {
       emailController.text.isEmpty ||
       phoneNumberController.text.isEmpty ||
       addressController.text.isEmpty ||
-      selectedCity == null ||
+     
       selectedEmirates == null ||
       selectedPaymentOptionKey == null) {
     // Show an alert dialog if fields are not filled
@@ -393,18 +385,7 @@ Widget build(BuildContext context) {
                 SizedBox(height: 10),
 
                 // City Dropdown
-                _buildInputField(
-                  label: 'city'.tr(),
-                  isDropdown: true,
-                  dropdownValue: selectedCity,
-                  items: cities,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCity = value;
-                    });
-                  },
-                ),
-                SizedBox(height: 10),
+             
 
                 // Address
                 _buildInputField(

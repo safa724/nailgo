@@ -21,6 +21,7 @@ class _SuccessState extends State<Success> {
         return false; // Prevent default back behavior
       },
       child: Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -28,7 +29,7 @@ class _SuccessState extends State<Success> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Image.asset(
-                  'assets/icons-26.png',
+                  'assets/tick.jpeg',
                   width: 200,
                   height: 200,
                 ),

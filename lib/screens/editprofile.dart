@@ -15,14 +15,14 @@ class _EditProfileState extends State<EditProfile> {
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController cityController = TextEditingController();
+  
   final TextEditingController addressController = TextEditingController();
   final TextEditingController emiratesController = TextEditingController();
   String userName = '';
   String userEmail = '';
   bool isLoggedIn = false;
   List<String> cities = [];
-  String? selectedCity;
+  //String? selectedCity;
   bool isLoading = false;
 
   String? selectedEmirates;
@@ -41,13 +41,7 @@ class _EditProfileState extends State<EditProfile> {
   void initState() {
     super.initState();
     checkLoginStatus();
-    fetchCities().then((value) {
-      setState(() {
-        cities = value;
-      });
-    }).catchError((error) {
-      print('Error fetching cities: $error');
-    });
+
   }
 
 Future<void> checkLoginStatus() async {
@@ -91,7 +85,7 @@ Future<void> fetchProfile() async {
         firstNameController.text = userData['name'] ?? '';  // Prefill firstName
         emailController.text = userData['email'] ?? '';  // Prefill email
         phoneNumberController.text = userData['phone'] ?? '';  // Prefill phone number if available
-        cityController.text = userData['city'] ?? '';  // Prefill city if available
+    
         addressController.text = userData['address'] ?? '';  // Prefill address if available
         emiratesController.text = userData['emirates'] ?? '';  // Prefill emirates if available
       });
@@ -105,23 +99,23 @@ Future<void> fetchProfile() async {
 }
 
 
-  Future<List<String>> fetchCities() async {
-    try {
-      final response = await http.get(Uri.http('nailgo.ae', '/api/v2/cities'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        if (data.containsKey('data')) {
-          return (data['data'] as List).map((city) => city['name'] as String).toList();
-        } else {
-          throw Exception('Cities not found in API response');
-        }
-      } else {
-        throw Exception('Failed to fetch cities: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error fetching cities: $e');
-    }
-  }
+  // Future<List<String>> fetchCities() async {
+  //   try {
+  //     final response = await http.get(Uri.http('nailgo.ae', '/api/v2/cities'));
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body) as Map<String, dynamic>;
+  //       if (data.containsKey('data')) {
+  //         return (data['data'] as List).map((city) => city['name'] as String).toList();
+  //       } else {
+  //         throw Exception('Cities not found in API response');
+  //       }
+  //     } else {
+  //       throw Exception('Failed to fetch cities: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Error fetching cities: $e');
+  //   }
+  // }
 
   Future<void> _saveProfile() async {
     if (firstNameController.text.isEmpty ||
@@ -152,7 +146,7 @@ Future<void> fetchProfile() async {
           'name': firstNameController.text,
           'phone': phoneNumberController.text,
           'email': emailController.text,
-          'city': cityController.text,
+          'city': "",
           'emirates': emiratesController.text,
         }),
       );
@@ -189,7 +183,7 @@ Future<void> fetchProfile() async {
     firstNameController.dispose();
     emailController.dispose();
     phoneNumberController.dispose();
-    cityController.dispose();
+    
     addressController.dispose();
     emiratesController.dispose();
     super.dispose();
@@ -211,7 +205,7 @@ Future<void> fetchProfile() async {
                   _buildTextField('fn'.tr(), firstNameController),
                   _buildTextField('email'.tr(), emailController),
                   _buildTextField('phone'.tr(), phoneNumberController),
-                  _buildDropdown('city'.tr(), cities, selectedCity, cityController),
+                
                   _buildTextField('address'.tr(), addressController),
                   _buildDropdown('emira'.tr(), emirates, selectedEmirates, emiratesController),
                   _buildSaveButton(),

@@ -64,7 +64,8 @@ class _HomeState extends State<Home> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "explore".tr(),
+                                      'just'.tr(),
+                                      
                                       style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
@@ -109,7 +110,7 @@ class _HomeState extends State<Home> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'just'.tr(),
+                                      "explore".tr(),
                                       style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,

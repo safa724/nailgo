@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-   await fetchCartData();
+  
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en', 'US'), Locale('ar', 'AE')],
@@ -24,10 +24,7 @@ void main() async {
     ),
   );
 }
-Future<void> fetchCartData() async {
-  final cartProvider = CartProvider();
-  await cartProvider.fetchCartItems(); // Fetch cart items at the start
-}
+
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key});

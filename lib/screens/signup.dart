@@ -10,7 +10,20 @@ class SignupPage extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  
+Future<void> validateAndSignUp(BuildContext context) async {
+  // Check if all fields are filled
+  if (nameController.text.isEmpty || 
+      emailController.text.isEmpty || 
+      passwordController.text.isEmpty) {
+    // Show error popup
+    await _showPopupMessage(context, "Please fill in all the required fields before proceeding.", isSuccess: false);
+    return; // Stop further execution
+  }
 
+  // If validation passes, proceed with signup
+  await signUp(context);
+}
 Future<void> signUp(BuildContext context) async {
   final String apiUrl = "http://nailgo.ae/api/v2/auth/signup";
 
@@ -95,7 +108,7 @@ Future<void> signUp(BuildContext context) async {
 
     // Show success or error message
     await _showPopupMessage(context, 
-      isSuccess ? "Signup successful!" : responseData['message'], 
+      isSuccess ? "Account Created Succesfully!" : responseData['message'], 
       isSuccess: isSuccess);
 
     // Show additional popup only if signup was successful
@@ -279,9 +292,9 @@ Future<void> _showPopupMessage(BuildContext context, String message, {bool isSuc
                     Container(
                       width: 250,
                       child: ElevatedButton(
-                        onPressed: () async {
-                          signUp(context);
-                        },
+                       onPressed: () async {
+      await validateAndSignUp(context);
+    },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color.fromARGB(255, 209, 109, 27),
                           shape: RoundedRectangleBorder(
