@@ -5,9 +5,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:nailgonew/screens/addresmodel.dart';
+import 'package:nailgonew/screens/applepay.dart';
 import 'package:nailgonew/screens/payment.dart';
 import 'package:nailgonew/screens/succsus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+
 
 class CheckOut extends StatefulWidget {
   final Address? selectedAddress;
@@ -55,16 +58,31 @@ Future<void> fetchPaymentTypes() async {
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = jsonDecode(response.body);
-      
+
       setState(() {
-        // Make sure to set the state with the correct data structure
-        paymentOptions = jsonData.map<Map<String, String>>((paymentType) {
-          return {
-            'payment_type_key': paymentType['payment_type_key'],
-            'title': paymentType['title'],
-            'image': paymentType['image'],
-          };
-        }).toList();
+        // Filter options based on platform
+        if (Platform.isIOS) {
+          paymentOptions = [
+            {
+              'payment_type_key': 'cash_on_delivery',
+              'title': 'Cash on Delivery',
+              'image': 'http://nailgo.ae/public/assets/img/cards/cod.png',
+            },
+            {
+              'payment_type_key': 'apple_pay',
+              'title': 'Checkout with Apple Pay',
+              'image': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Apple_Pay_logo.svg/1200px-Apple_Pay_logo.svg.png',
+            },
+          ];
+        } else {
+          paymentOptions = jsonData.map<Map<String, String>>((paymentType) {
+            return {
+              'payment_type_key': paymentType['payment_type_key'],
+              'title': paymentType['title'],
+              'image': paymentType['image'],
+            };
+          }).toList();
+        }
       });
     } else {
       print('Failed to fetch payment types: ${response.statusCode}');
@@ -73,6 +91,7 @@ Future<void> fetchPaymentTypes() async {
     print('Error fetching payment types: $e');
   }
 }
+
 
 
   Future<void> checkLoginStatus() async {
@@ -124,7 +143,6 @@ void _createOrder() async {
       emailController.text.isEmpty ||
       phoneNumberController.text.isEmpty ||
       addressController.text.isEmpty ||
-     
       selectedEmirates == null ||
       selectedPaymentOptionKey == null) {
     // Show an alert dialog if fields are not filled
@@ -154,7 +172,6 @@ void _createOrder() async {
         );
 
         if (fingerResponse.statusCode == 200) {
-          // Parse the finger data response
           var fingerData = jsonDecode(fingerResponse.body)['finger_data'];
 
           // 2. Proceed to create the order
@@ -162,9 +179,9 @@ void _createOrder() async {
             "owner_id": ownerId,
             "user_id": userId,
             "payment_type": selectedPaymentOptionKey,
-            "finger_data": fingerData,  // Add the finger data here
+            "finger_data": fingerData,
           };
-print('Finger Data: ${requestBody['finger_data']}'); // Log the finger data
+
           Uri url = Uri.http('nailgo.ae', '/api/v2/order/store');
 
           Map<String, String> headers = {
@@ -180,21 +197,29 @@ print('Finger Data: ${requestBody['finger_data']}'); // Log the finger data
             );
 
             if (response.statusCode == 200) {
-           print('Finger Data: ${requestBody['finger_data']}'); // Log the finger data
+              print('Finger Data: ${requestBody['finger_data']}');
               print(response.body);
               print("Order created successfully!");
-              // Parse the response body
+
               var responseBody = jsonDecode(response.body);
               var combinedOrderId = responseBody['combined_order_id'];
+              var totalAmount = responseBody['order_amount']; 
 
-              // If payment is Cash on Delivery, go to the Success page
-              if (selectedPaymentOptionKey == 'Cash on Delivery') {
+              if (selectedPaymentOptionKey == 'apple_pay') {
+                // Navigate to Apple Pay page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ApplePayPage(orderId: combinedOrderId,  totalAmount: totalAmount,)),
+                );
+              } else if (selectedPaymentOptionKey == 'cash_on_delivery') {
                 Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => Success()));
+                  context,
+                  MaterialPageRoute(builder: (context) => Success()),
+                );
               } else {
-                // Otherwise, fetch the payment link
+                // Proceed with payment link logic for other payment types
                 Map<String, dynamic> paymentRequestBody = {
-                  "id": userId,  // Replace with your actual ID if needed
+                  "id": userId,
                   "order_id": combinedOrderId,
                 };
 
@@ -212,9 +237,8 @@ print('Finger Data: ${requestBody['finger_data']}'); // Log the finger data
                     var responseData = jsonDecode(paymentResponse.body);
                     String paymentLink = responseData['payment_link'];
                     String orderReference = responseData['order_reference'];
-                    String accessToken = responseData['access_token'];  // Assuming this token is returned
+                    String accessToken = responseData['access_token'];
 
-                    // Load the payment link in a WebView
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -270,6 +294,7 @@ print('Finger Data: ${requestBody['finger_data']}'); // Log the finger data
     }
   }
 }
+
 
 
 void _showFillFieldsDialog() {
@@ -427,10 +452,11 @@ _buildInputField(
     });
   },
   itemImages: paymentOptions
-      .map((paymentType) => paymentType['image'] ?? '') // Assuming 'payment_image' holds image path
+      .map((paymentType) => paymentType['image'] ?? '') // Get the image path
       .where((image) => image.isNotEmpty) // Remove any empty values if needed
       .toList(),
 ),
+
 
 
                 SizedBox(height: 30),
