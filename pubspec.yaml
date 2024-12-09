@@ -54,6 +54,9 @@ dependencies:
   shared_preferences: ^2.2.3
   easy_localization: ^3.0.5
   webview_flutter: ^2.0.8
+  flutter_stripe: ^11.3.0
+  pay: ^1.0.0
+  payment: ^0.0.1
 
   
 
